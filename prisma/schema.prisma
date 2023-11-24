@@ -1,0 +1,174 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+model admins {
+  admin_id         Int      @id @default(autoincrement())
+  admin_ssn        Int
+  admin_fname      String   @db.VarChar(15)
+  admin_lname      String   @db.VarChar(20)
+  admin_image      String?  @db.VarChar(50)
+  admin_email      String   @db.VarChar(25)
+  admin_password   String   @db.VarChar(25)
+  admin_mobile     String   @db.VarChar(25)
+  admin_created_on DateTime @default(now()) @db.DateTime(0)
+}
+
+model api_keys {
+  id        Int       @id @default(autoincrement())
+  key       String    @unique(map: "key") @db.VarChar(32)
+  user      Int
+  api_users api_users @relation(fields: [user], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "api_keys_ibfk_1")
+
+  @@index([user], map: "user")
+}
+
+model api_users {
+  id            Int        @id @default(autoincrement())
+  fname         String     @db.VarChar(45)
+  lname         String     @db.VarChar(45)
+  registered_on DateTime?  @default(now()) @db.DateTime(0)
+  email         String     @unique(map: "email") @db.VarChar(45)
+  password      String     @db.VarChar(45)
+  api_keys      api_keys[]
+}
+
+model dispenses {
+  drug_id      Int
+  patient_id   Int
+  dispersed_on DateTime @default(now()) @db.DateTime(0)
+  id           Int      @id @default(autoincrement())
+  drugs        drugs    @relation(fields: [drug_id], references: [drug_id], onDelete: NoAction, onUpdate: NoAction, map: "dispenses_ibfk_1")
+  patients     patients @relation(fields: [patient_id], references: [patient_id], onDelete: NoAction, onUpdate: NoAction, map: "dispenses_ibfk_2")
+
+  @@index([drug_id], map: "drug_id")
+  @@index([patient_id], map: "patient_id")
+}
+
+model doctors {
+  doctor_id           Int             @id @default(autoincrement())
+  doctor_ssn          Int?
+  speciality          String?         @db.VarChar(50)
+  years_of_experience Int?
+  doctor_fname        String?         @db.VarChar(15)
+  doctor_lname        String?         @db.VarChar(15)
+  opening_time        DateTime?       @db.Time(0)
+  closing_time        DateTime?       @db.Time(0)
+  doctor_image        String?         @db.VarChar(50)
+  doctor_email        String          @db.VarChar(25)
+  doctor_password     String          @db.VarChar(25)
+  doctor_mobile       String          @db.VarChar(25)
+  doctor_created_on   DateTime        @default(now()) @db.DateTime(0)
+  prescriptions       prescriptions[]
+}
+
+model drugs {
+  drug_id       Int             @id @default(autoincrement())
+  drug_name     String          @db.VarChar(30)
+  quantity      Int
+  drug_image    String?         @db.VarChar(45)
+  created_on    DateTime?       @default(now()) @db.DateTime(0)
+  price         Float
+  category      drugs_category?
+  dispenses     dispenses[]
+  prescriptions prescriptions[]
+}
+
+model patients {
+  patient_id          Int                          @id @unique(map: "patient_id_UNIQUE") @default(autoincrement())
+  patient_ssn         Int                          @unique(map: "patient_ssn_UNIQUE")
+  patient_fname       String                       @db.VarChar(15)
+  patient_lname       String                       @db.VarChar(15)
+  patient_address     String                       @db.VarChar(100)
+  patient_weight      Float                        @db.Float
+  patient_height      Float                        @db.Float
+  patient_age         Int
+  patient_blood_group patients_patient_blood_group
+  patient_image       String?                      @db.VarChar(50)
+  patient_email       String                       @unique(map: "patient_email_UNIQUE") @db.VarChar(25)
+  patient_password    String                       @db.VarChar(25)
+  patient_mobile      String                       @db.VarChar(25)
+  patient_created_on  DateTime                     @default(now()) @db.DateTime(0)
+  last_login          DateTime?                    @db.DateTime(0)
+  gender              patients_gender              @default(MALE)
+  dispenses           dispenses[]
+  prescriptions       prescriptions[]
+}
+
+model pharmacies {
+  pharmacy_id         Int             @id @default(autoincrement())
+  pharmacy_name       String          @db.VarChar(30)
+  pharmacy_street     String          @db.VarChar(30)
+  pharmacy_city       String          @db.VarChar(15)
+  pharmacy_state      String          @db.VarChar(20)
+  pharmacy_zipcode    String          @db.VarChar(6)
+  pharmacy_country    String          @db.VarChar(20)
+  opening_time        DateTime        @db.Time(0)
+  closing_time        DateTime        @db.Time(0)
+  pharmacy_image      String?         @db.VarChar(50)
+  pharmacy_email      String          @db.VarChar(25)
+  pharmacy_password   String          @db.VarChar(25)
+  pharmacy_mobile     String          @db.VarChar(25)
+  pharmacy_created_on DateTime        @default(now()) @db.DateTime(0)
+  prescriptions       prescriptions[]
+}
+
+model prescriptions {
+  prescription_id Int        @id @default(autoincrement())
+  symptoms        String     @db.VarChar(60)
+  drug_id         Int
+  patient_id      Int
+  doctor_id       Int
+  pharmacy_id     Int
+  frequency_hours Int
+  drug_dispensed  Boolean    @default(false)
+  created_on      DateTime   @default(now()) @db.DateTime(0)
+  drugs           drugs      @relation(fields: [drug_id], references: [drug_id], onDelete: NoAction, onUpdate: NoAction, map: "prescriptions_ibfk_1")
+  patients        patients   @relation(fields: [patient_id], references: [patient_id], onDelete: NoAction, onUpdate: NoAction, map: "prescriptions_ibfk_2")
+  doctors         doctors    @relation(fields: [doctor_id], references: [doctor_id], onDelete: NoAction, onUpdate: NoAction, map: "prescriptions_ibfk_3")
+  pharmacies      pharmacies @relation(fields: [pharmacy_id], references: [pharmacy_id], onDelete: NoAction, onUpdate: NoAction, map: "prescriptions_ibfk_4")
+
+  @@index([drug_id], map: "prescriptions_ibfk_1")
+  @@index([patient_id], map: "prescriptions_ibfk_2")
+  @@index([doctor_id], map: "prescriptions_ibfk_3")
+  @@index([pharmacy_id], map: "prescriptions_ibfk_4")
+}
+
+model sys_config {
+  variable String    @id @db.VarChar(128)
+  value    String?   @db.VarChar(128)
+  set_time DateTime? @default(now()) @db.Timestamp(0)
+  set_by   String?   @db.VarChar(128)
+}
+
+model test {
+  test_col Int @id @default(autoincrement())
+}
+
+enum drugs_category {
+  PAINKILLER
+  ANTIBIOTICS
+  INHALANTS
+  STIMULANTS
+}
+
+enum patients_patient_blood_group {
+  Am  @map("A-")
+  Ap  @map("A+")
+  Bm  @map("B-")
+  Bp  @map("B+")
+  ABm @map("AB-")
+  ABp @map("AB+")
+  Om  @map("O-")
+  Op  @map("O+")
+}
+
+enum patients_gender {
+  MALE
+  FEMALE
+}
