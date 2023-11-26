@@ -1,5 +1,6 @@
 const express = require("express");
 const { getPatients, getPatient } = require("../controllers/patientController");
+const { getDrugs } = require("../controllers/drugController");
 const router = express.Router();
 const { isDigits } = require("../helper");
 
@@ -58,6 +59,21 @@ router.get("/:userId", async (req, res) => {
   const userId = req.params.userId;
   const user = await getPatient(userId);
   res.status(200).json({ user: user });
+});
+
+router.get("/:userId/drugs", async (req, res) => {
+  let drugs = null;
+  const userId = req.params.userId;
+  if (!isDigits(userId)) {
+    // Check if user ID is not all digits
+    res.status(400).json({
+      error: true,
+      message: "Invalid user ID. User ID expects an integer",
+    });
+    return;
+  }
+  drugs = await getDrugs("user", Number(userId));
+  res.status(200).json(drugs);
 });
 
 module.exports = router;

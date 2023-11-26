@@ -37,7 +37,6 @@ const isValidGender = (gender) => {
 
 const getPatients = async (searchBy = "", query = null) => {
   let patients = [];
-  console.log(query.toISOString());
   let options = null;
   switch (searchBy) {
     case "gender":

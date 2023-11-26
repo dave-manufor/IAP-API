@@ -1,6 +1,6 @@
 const express = require("express");
-const cors = require("cors");
-const bodyParser = require("body-parser");
+const cors = require("cors"); // CROSS ORIGIN REQUEST
+const bodyParser = require("body-parser"); // FORMATS REQUEST BODY TO JSON
 const { users, drugs, register } = require("./routes");
 const authenticate = require("./middleware/authenticate");
 const PORT = 4000;
